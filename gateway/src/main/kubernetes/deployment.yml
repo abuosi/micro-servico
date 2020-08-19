@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+    version: v1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+      version: v1.0
+  template:
+    metadata:
+      labels:
+        app: gateway
+        version: v1.0
+    spec:
+      containers:
+      - env:      
+        name: gateway
+        image: abuosi/gateway:1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 8778
+          name: jolokia
+          protocol: TCP
+        - containerPort: 9779
+          name: prometheus
+          protocol: TCP
+        livenessProbe:
+          exec:
+            command:
+            - curl
+            - localhost:8080/health/live
+          initialDelaySeconds: 5
+          periodSeconds: 4
+          timeoutSeconds: 1
+        readinessProbe:
+          exec:
+            command:
+            - curl
+            - localhost:8080/health/ready
+          initialDelaySeconds: 6
+          periodSeconds: 5
+          timeoutSeconds: 1
+        securityContext:
+          privileged: false
